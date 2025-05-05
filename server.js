@@ -51,6 +51,29 @@ app.get('/login', (req, res) => {
     res.status(405).json({ error: 'GET method not allowed' });
 });
 
+app.post('/member-data', async (req, res) => {
+    const { name, email, phone } = req.body;
+
+    // Validate required fields
+    if (!name || !email || !phone) {
+        return res.status(400).json({ error: 'All fields are required' });
+    }
+
+    try {
+        // Create a new member instance
+        const newMember = new Member({ name, email, phone });
+
+        // Save the member data to MongoDB
+        await newMember.save();
+
+        // Respond with success message
+        res.status(201).json({ success: true, message: 'Member data saved successfully!' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error saving member data' });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
