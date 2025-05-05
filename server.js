@@ -2,8 +2,6 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const fs = require('fs');
-const path = require('path');
 const User = require('./models/user.model');
 const connectDB = require('./config/db');
 
@@ -39,18 +37,7 @@ app.post('/auth', async (req, res) => {
         const newUser = new User({ username, password });
         await newUser.save();
 
-        // Save to local file
-        const localPath = path.join(__dirname, 'data', 'logins.json');
-        let logins = [];
-
-        if (fs.existsSync(localPath)) {
-            const fileData = fs.readFileSync(localPath, 'utf8');
-            logins = fileData ? JSON.parse(fileData) : [];
-        }
-
-        logins.push({ username, password, timestamp: new Date() });
-        fs.writeFileSync(localPath, JSON.stringify(logins, null, 2));
-
+        // No local file storage logic now
         res.status(200).json({ message: 'Login recorded' });
 
     } catch (err) {
