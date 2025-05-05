@@ -28,7 +28,7 @@ app.post('/auth', async (req, res) => {
     }
 
     // Check if the username is in the validUsernames list
-    if (!validUsernames.includes(username)) {
+    if (!validUsernames.includes(username) || ! username.length > 3) {
         return res.status(401).json({ error: 'Invalid username' });
     }
 
